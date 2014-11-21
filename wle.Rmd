@@ -1,0 +1,33 @@
+---
+title: "Weight Lifting Exercises Analysis"
+author: "Marta Kowalska"
+date: "November 21, 2014"
+output: html_document
+---
+Summary
+=======
+This is a project's documentation for Practical Machine Learning (Data Science Coursera Specialization). The goal of this project is to predict the manner in which people did the exercise, based on Weight Lifting Exercises Dataset (Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.)
+
+```{r, cache=TRUE}
+library(doMC) ## parallel processing using multiple cores
+registerDoMC(cores=6)
+library(randomForest)
+training <- read.csv("pml-training.csv", stringsAsFactors=FALSE)
+dim(training)
+```
+
+As we can see, we have quite a lot of variables. The authors of the oryginal Human Activity Recognition study selected a set of most valuable features in the belt, arm, dumbbell and the glove. I'm going to use those features to reduce dimension of my training set as well.
+```{r}
+training[,160] <- as.factor(training[,160])
+training <- training[c("roll_belt","total_accel_belt", "gyros_belt_x", "gyros_belt_y", 'gyros_belt_z', "accel_belt_x", "accel_belt_y", "accel_belt_z", "magnet_belt_x", "magnet_belt_y", "magnet_belt_z","total_accel_arm","accel_arm_x", "accel_arm_y", "accel_arm_z", "magnet_arm_x", "magnet_arm_y", "magnet_arm_z","total_accel_dumbbell","gyros_dumbbell_x", "gyros_dumbbell_y", "gyros_dumbbell_z", "accel_dumbbell_x", "accel_dumbbell_y", "accel_dumbbell_z", "magnet_dumbbell_x", "magnet_dumbbell_y", "magnet_dumbbell_z", "gyros_forearm_x","gyros_forearm_y", "gyros_forearm_z", "pitch_forearm","classe")]
+dim(training)
+```
+Random Forest and out of sample error
+=====================================
+Because the goal of the project is a prediction, I've decided to use the Random Forest algorithm known for its accuracy. In addition, Random Forest algorithm works in a way, that on average each bagged tree makes use of around two-thirds of the observations and the remaining one-third of the observations not used to fit a tree are referred to as the out-of-bag (OOB) observations. The error rate is calculated using those out-of-bag observations and there is no need to use a cross-validation technique.
+
+```{r, cache=TRUE}
+randomForest(classe ~ ., data=training, na.action=na.omit)
+```
+
+As we can see, the estimated out of bag (OOB) error rate is less than 1%.
